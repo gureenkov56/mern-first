@@ -1,0 +1,4 @@
+{
+    "port": 5050,
+    "connectMongoURL": "mongodb+srv://gureenkov56:BfCZhzAb8BTzjZIC@mern.vhluzzi.mongodb.net/?retryWrites=true&w=majority"
+}
