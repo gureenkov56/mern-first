@@ -6,7 +6,9 @@ function Header() {
 
     return (
         <header>
-            <h1>HEADER</h1>
+            <Link to="/">
+                <h1>HEADER</h1>
+            </Link>
             <Link to="/login" >Login</Link>
         </header>
     )
