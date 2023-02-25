@@ -40,28 +40,38 @@ const loginAndPasswordValidation = [
 ]
 
 async function createUser(req, res) {
-    const errors = validationResult(req);
+    const errorsValidate = validationResult(req);
 
-    console.log('errors: ', errors.array())
+    console.log('errors: ', errorsValidate.array())
 
-    // try {
-    //     const { login, password } = req.body;
+    // TODO: сделать для каждой ошибки свой вывод
+    if (!errorsValidate.isEmpty()) {
+        return res.status(400).json({errors: errorsValidate.array()})
+    }
 
+    try {
+        const { login, password } = req.body;
 
-    //     // проверка есть ли в базе уже такой логин
-    //     const checkLogin = await User.findOne({ login });
+        
 
-    //     if (checkLogin) {
-    //         return res.status(400).json({ message: 'Такой login уже существует' })
-    //     }
-    // } catch (error) {
+        // проверка есть ли в базе уже такой логин
+        // const checkLogin = await User.findOne({ login });
+        // if (checkLogin) {
+        //     return res.status(400).json({ message: 'Такой login уже существует' })
+        // }
 
-    // }
-    return res.status(200).json({
-        message: `body ${req.body.login}`
-    })
+        return res.status(200).json({
+            message: `Успех регистрации!`
+        })
 
-    res.send(`Create user post end`)
+    } catch (e) {        
+        return res.status(400).json({ 
+            e,
+            message: 'ошибка регистрации!' 
+        });
+    }
+    
+
 }
 
 async function loginFunc(req, res) {

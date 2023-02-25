@@ -7,6 +7,8 @@ function Login() {
         password: '',
     })
 
+    const [errorsList, setErrorsList] = useState([]);
+
     function formHandler(event) {
         setForm({ ...form, [event.target.name]: event.target.value })
     }
@@ -18,21 +20,33 @@ function Login() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(form) 
+            body: JSON.stringify(form)
         })
-        .then(res => console.log('res', res))
+            .then(res => console.log('res', res))
     }
 
-    function fetchCreateUser() {
-        console.log('send data', JSON.stringify(form));
-        fetch('/api/createuser', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({...form}) 
-        })
-        .then(res => console.log('res', res))
+    async function fetchCreateUser() {
+        try {
+            const res = await fetch('/api/createuser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ...form })
+            })
+
+            const resJson = await res.json();
+
+            if (!res.ok) {
+                const errorMsgs = resJson.errors.map(e => e.msg);
+                setErrorsList(errorMsgs);
+            } else {
+                setErrorsList([]);
+                console.log('OK');
+            };
+        } catch (error) {
+            console.log('error', error);
+        }
     }
 
     return (
@@ -55,6 +69,11 @@ function Login() {
                 </div>
                 <button type='button' onClick={fetchLogin}>Log in</button>
                 <button type="button" onClick={fetchCreateUser}>Registration</button>
+                <div className="validation-msg">
+                    {
+                        errorsList.map((error, idx) => <div className='error' key={idx}>{error}</div>)
+                    }
+                </div>
             </form>
         </>
     )
