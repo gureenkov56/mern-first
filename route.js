@@ -1,6 +1,6 @@
 const { body, validationResult, check } = require('express-validator');
 const User = require('./models/User');
-
+const bcrypt = require('bcrypt');
 
 module.exports = function (server) {
 
@@ -46,39 +46,36 @@ async function createUser(req, res) {
 
     // TODO: сделать для каждой ошибки свой вывод
     if (!errorsValidate.isEmpty()) {
-        return res.status(400).json({errors: errorsValidate.array()})
+        return res.status(400).json({ errors: errorsValidate.array() })
     }
 
     try {
-        const { login, password } = req.body;
-
-        
+        let { login, password } = req.body;
 
         // проверка есть ли в базе уже такой логин
         const checkLogin = await User.findOne({ login });
         if (checkLogin) {
-            return res.status(400).json({ errors: [{msg: 'Такой login уже существует'}] })
+            return res.status(400).json({ errors: [{ msg: 'Такой login уже существует' }] })
         } else {
-            User.insertMany([
-                {
-                    login,
-                    password,
-                    posts: null
-                }
-            ])
+            // здесь где-то ошибка бросается в catch
+
+            bcrypt.hash(password, 10, function (err, hash) {
+                User.insertMany([{ login, password: hash }]);
+            });
+
+            console.log('password', password);
+
+            return res.status(201).json({
+                message: `Успех регистрации!`
+            })
         }
-
-        return res.status(200).json({
-            message: `Успех регистрации!`
-        })
-
-    } catch (e) {        
-        return res.status(400).json({ 
+    } catch (e) {
+        return res.status(400).json({
             e,
-            msg: 'ошибка регистрации!' 
+            msg: 'ошибка регистрации!'
         });
     }
-    
+
 
 }
 
@@ -86,12 +83,21 @@ async function loginFunc(req, res) {
     try {
         const { login, password } = req.body;
 
-        console.log('login', login);
-        console.log('password', password);
+        const findLogin = await User.findOne({ login });
+        if (findLogin) {
+            const match = await bcrypt.compare(password, findLogin.password);
+            if (match) {
+                return res.status(200).json({ errors: [{ msg: 'Авторизация успешна' }] })
+            } else {
+                return res.status(400).json({ errors: [{ msg: 'Пароль неверный' }] })
+            }
+        } else {
+            return res.status(400).json({ errors: [{ msg: 'Login не зарегистрирован' }] })
+        }
 
 
     } catch (error) {
-
+        console.log('error', error);
     }
 
     res.send(`Login post end`)
