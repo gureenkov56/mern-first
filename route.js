@@ -55,10 +55,18 @@ async function createUser(req, res) {
         
 
         // проверка есть ли в базе уже такой логин
-        // const checkLogin = await User.findOne({ login });
-        // if (checkLogin) {
-        //     return res.status(400).json({ message: 'Такой login уже существует' })
-        // }
+        const checkLogin = await User.findOne({ login });
+        if (checkLogin) {
+            return res.status(400).json({ errors: [{msg: 'Такой login уже существует'}] })
+        } else {
+            User.insertMany([
+                {
+                    login,
+                    password,
+                    posts: null
+                }
+            ])
+        }
 
         return res.status(200).json({
             message: `Успех регистрации!`
@@ -67,7 +75,7 @@ async function createUser(req, res) {
     } catch (e) {        
         return res.status(400).json({ 
             e,
-            message: 'ошибка регистрации!' 
+            msg: 'ошибка регистрации!' 
         });
     }
     

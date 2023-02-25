@@ -38,14 +38,15 @@ function Login() {
             const resJson = await res.json();
 
             if (!res.ok) {
-                const errorMsgs = resJson.errors.map(e => e.msg);
-                setErrorsList(errorMsgs);
+                throw resJson;
+                // setErrorsList(errorMsgs);
             } else {
                 setErrorsList([]);
                 console.log('OK');
             };
-        } catch (error) {
-            console.log('error', error);
+        } catch (e) {
+            console.log('error', e);
+            setErrorsList(e.errors.map(err => err.msg))
         }
     }
 
