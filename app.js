@@ -1,7 +1,9 @@
 const config = require('config');
 const express = require('express');
 const mongoose = require('mongoose');
-const useRoute = require('./route');
+const mainRoute = require('./routes/mainRoute');
+const userRoutes = require('./routes/User');
+
 
 const PORT = config.get('port') || 3030;
 
@@ -14,7 +16,13 @@ const server = express();
 // здесь middleware преобразующий в json
 server.use(express.json({ extended: true }))
 
-useRoute(server);
+server.use('/api', mainRoute);
+server.use('/api', userRoutes);
+
+
+// add routes
+// useRoute(server); 
+// authRoutes(server);
 
 
 
@@ -25,7 +33,6 @@ const mongooseConnectSettings = {
     useUnifiedTopology: true,
     useNewUrlParser: true
 }
-
 
 const connectMongoURL = config.get('connectMongoURL');
 
