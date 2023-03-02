@@ -16,7 +16,7 @@ router.get('/users', getAllUsers)
 // reg new user
 router.post('/reg', ...validate, createUser)
 // login
-// router.post('/login', loginUser)
+router.post('/login', loginUser)
 
 module.exports = router
 
@@ -31,7 +31,7 @@ async function createUser(req, res) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    let isExistLogin = User.findOne({login: req.body.login});
+    let isExistLogin = User.findOne({ login: req.body.login });
     if (isExistLogin) {
         return res.status(400).json({ message: 'Login exist' });
     }
@@ -44,17 +44,30 @@ async function createUser(req, res) {
     }
 
     const success = await User.create(newUser, (err) => {
-        if (err) return res.status(400).json({message: 'User create error', err});
+        if (err) return res.status(400).json({ message: 'User create error', err });
     })
 
-    return res.status(201).json({ 
-        message: success, 
+    return res.status(201).json({
+        message: success,
         login: req.body.login,
         password: hashedPassword,
     });
 }
 
-// async function createUser 
+async function loginUser(req, res) {
+    const findLogin = await User.findOne({ login: req.body.login });
+    if (!findLogin) {
+        return res.status(400).json({ message: 'Login is not exist' })
+    }
+
+    let comparePassword = await bcrypt.compare(req.body.password, findLogin.password)
+    if (comparePassword) {
+        return res.status(200).json({ message: 'Authorization is success' })
+    } else {
+        // create JWT token
+        return res.status(400).json({ message: 'Wrong password' })
+    }
+}
 
 
 
