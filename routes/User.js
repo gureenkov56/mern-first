@@ -3,6 +3,7 @@ const router = express.Router()
 
 const { body, validationResult, check } = require('express-validator');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const config = require('config');
 
@@ -17,6 +18,8 @@ router.get('/users', getAllUsers)
 router.post('/reg', ...validate, createUser)
 // login
 router.post('/login', loginUser)
+// profile (inly for logined)
+router.get('/profile', middlewareCheckToken, profile)
 
 module.exports = router
 
@@ -62,15 +65,43 @@ async function loginUser(req, res) {
 
     let comparePassword = await bcrypt.compare(req.body.password, findLogin.password)
     if (comparePassword) {
-        return res.status(200).json({ message: 'Authorization is success' })
+        const token = jwt.sign({login: req.body.login}, config.get('JWTsecret'))
+        return res.status(200).json({ 
+            message: 'Authorization is success',
+            token,
+        })
     } else {
         // create JWT token
         return res.status(400).json({ message: 'Wrong password' })
     }
 }
 
+function profile(req, res) {
+    jwt.verify(req.token, config.get("JWTsecret"), (err, data) => {
+        if (err) {
+            res.status(403).json({message: 'JWT verify error'});
+        } else {
+            res.status(200).json({
+                message: 'JWT verify success',
+                data,
+            })
+        }
+    });
 
+}
 
+function middlewareCheckToken(req, res, next) {
+    const bearerHeader = req.headers['authorization'];
+    console.log('bearerHeader', bearerHeader);
+    if (typeof bearerHeader !== undefined) {
+        const bearer = bearerHeader.split(" ");
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    } else {
+        res.status(403).json({message: 'Only for authed users'})
+    }
+}
 
 // const loginAndPasswordValidation = [
 //     check('login')
